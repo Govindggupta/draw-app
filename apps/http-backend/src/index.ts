@@ -5,7 +5,7 @@ import {CreateUserSchema, SignInSchema, CreateRoomSchema} from "@repo/common/typ
 import { prismaClient } from "@repo/db/client"
 
 const app = express();
-
+app.use(express.json());
 
 const PORT = 5000;
 
@@ -28,7 +28,8 @@ app.post("/signup",async (req, res) => {
 
     return res.json({ userId: "123" });
   } catch (error) {
-    return res.status(411).json({message: "user already exists with this email"})
+    return res.status(411).json({message: "user already exists with this email", errors: error
+    })
   }
 
 });
