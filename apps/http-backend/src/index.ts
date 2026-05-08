@@ -26,7 +26,7 @@ app.post("/signup",async (req, res) => {
       },
     });
 
-    return res.json({ userId: "123" });
+    return res.status(200).json({ user: user });
   } catch (error) {
     return res.status(411).json({message: "user already exists with this email", errors: error
     })
@@ -34,32 +34,44 @@ app.post("/signup",async (req, res) => {
 
 });
 
-app.post("/signin", (req, res) => {
-  // db call here
+app.post("/signin", async (req, res) => {
 
-  const data = SignInSchema.safeParse(req.body);
-  if (!data.success) {
-    return res.status(400).json({ message: "Incorrect data", errors: data.error});
+  const parsedData = SignInSchema.safeParse(req.body);
+
+  if (!parsedData.success) {
+    return res.status(400).json({ message: "Incorrect data", errors: parsedData.error});
   }
 
-  const userId = "123";
+  const user = await prismaClient.user.findFirst({
+    where: {
+      email: parsedData.success ? parsedData.data.email : undefined,
+      password: parsedData.success ? parsedData.data.password : undefined,
+    },
+  });
+
+  if (!user) {
+    return res.status(401).json({ message: "Invalid email or password" });
+  }
+
   const token = jwt.sign(
     {
-      userId,
+      userId: user.id
     },
     JWT_SECRET,
   );
 
-  res.json({
-    token,
-  });
+  return res.status(200).json({
+    username : user.name,
+    token : token
+  })
+
 });
 
 app.post("/room", (req, res) => {
   // db call here
-  const data = CreateRoomSchema.safeParse(req.body);
-  if (!data.success) {
-    return res.status(400).json({ message: "Incorrect data", errors: data.error });
+  const parsedData = CreateRoomSchema.safeParse(req.body);
+  if (!parsedData.success) {
+    return res.status(400).json({ message: "Incorrect data", errors: parsedData.error });
   }
 
   res.json({
