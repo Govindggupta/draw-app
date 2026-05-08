@@ -75,20 +75,31 @@ app.post("/room", middleware, async (req, res) => {
     return res.status(400).json({ message: "Incorrect data", errors: parsedData.error });
   }
 
-  //@ts-ignore
-  const userId = req.userId; 
+  try {
+      
+    //@ts-ignore
+    const userId = req.userId; 
 
-  await prismaClient.room.create({
-    data: {
-      slug: parsedData.data.name,
-      adminId: userId
-    }
-  })
+    const room = await prismaClient.room.create({
+      data: {
+        slug: parsedData.data.name,
+        adminId: userId
+      }
+    })
 
-  res.status(200).json({
-    roomId: parsedData.data.name,
-  });
+    res.status(200).json({
+      roomId: room.id,
+      name: room.slug
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: "Room already exists with this name",
+      errors: error
+    });
+  }
+
 });
+
 app.listen(PORT, () => {
   console.log("HTTP server running on port " + PORT);
 });
