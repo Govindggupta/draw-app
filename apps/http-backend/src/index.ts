@@ -100,6 +100,24 @@ app.post("/room", middleware, async (req, res) => {
 
 });
 
+app.get("/chats/:roomId" , async (req , res ) => {
+  const roomId = Number(req.params.roomId);
+  
+  const chats = await prismaClient.chat.findMany({
+    where: {
+      roomId: roomId 
+    }, 
+    orderBy: {
+      id: 'desc'
+    }, 
+    take: 50
+  })
+
+  res.status(200).json({
+    chats
+  })
+})
+
 app.listen(PORT, () => {
   console.log("HTTP server running on port " + PORT);
 });
